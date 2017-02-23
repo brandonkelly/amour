@@ -1,0 +1,19 @@
+{#
+/**
+ * Amour plugin for Craft CMS
+ *
+ * AmourWidget Widget Body
+ *
+ * @author    Pascal Ujak
+ * @copyright Copyright (c) 2017 Pascal Ujak
+ * @link      www.kreisvier.ch
+ * @package   Amour
+ * @since     1.0.0
+ */
+#}
+
+{% set iconUrl = view.getAssetManager().getPublishedUrl('@k4/amour/assetbundles/amourwidgetwidget/dist', true) ~ '/img/AmourWidget-icon.svg' %}
+
+<img src="{{ iconUrl }}" height="64" width="64" />
+
+<p>{{ message }}</p>

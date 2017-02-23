@@ -1,0 +1,43 @@
+{
+    "name": "k4/amour",
+    "description": "could be everything",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "amour"
+    ],
+    "support": {
+        "docs": "???",
+        "issues": "???"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Pascal Ujak",
+            "homepage": "www.kreisvier.ch"
+        }
+    ],
+    "require": {
+    },
+    "autoload": {
+        "psr-4": {
+          "k4\\amour\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Amour",
+        "handle": "amour",
+        "schemaVersion": "1.0.0",
+        "hasSettings": true,
+        "hasCpSection": true,
+        "changelogUrl": "???",
+        "components": {
+            "amourService": "k4\\amour\\services\\AmourService"
+        },
+        "class": "k4\\amour\\Amour"
+    }
+}

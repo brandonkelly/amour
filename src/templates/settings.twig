@@ -1,0 +1,25 @@
+{#
+/**
+ * Amour plugin for Craft CMS 3.x
+ *
+ * Amour Settings.twig
+ *
+ * @author    Pascal Ujak
+ * @copyright Copyright (c) 2017 Pascal Ujak
+ * @link      www.kreisvier.ch
+ * @package   Amour
+ * @since     1.0.0
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+{% do view.registerAssetBundle("k4\\amour\\assetbundles\\amour\\AmourAsset") %}
+
+{{ forms.textField({
+    label: 'Some Field',
+    instructions: 'Enter some setting here.',
+    id: 'someField',
+    name: 'someField',
+    value: settings['someField']})
+}}

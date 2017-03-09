@@ -10,25 +10,40 @@
 
 namespace k4\amour;
 
-use k4\amour\variables\AmourVariable;
+//use k4\amour\variables\AmourVariable;
 use k4\amour\twigextensions\AmourTwigExtension;
-use k4\amour\models\Settings;
-use k4\amour\utilities\AmourUtility as AmourUtilityUtility;
-use k4\amour\widgets\AmourWidget as AmourWidgetWidget;
+//use k4\amour\models\Settings;
+//use k4\amour\utilities\AmourUtility as AmourUtilityUtility;
+//use k4\amour\widgets\AmourWidget as AmourWidgetWidget;
 
 use Craft;
 use craft\base\Plugin;
-use craft\services\Plugins;
-use craft\events\PluginEvent;
-use craft\console\Application as ConsoleApplication;
-use craft\web\UrlManager;
-use craft\services\Elements;
-use craft\services\Fields;
-use craft\services\Utilities;
-use craft\services\Dashboard;
-use craft\events\RegisterComponentTypesEvent;
-use craft\events\RegisterUrlRulesEvent;
+//use craft\services\Plugins;
+//use craft\events\PluginEvent;
+//use craft\console\Application as ConsoleApplication;
+//use craft\web\UrlManager;
+//use craft\services\Elements;
+//use craft\services\Fields;
+//use craft\services\Utilities;
+//use craft\services\Dashboard;
+//use craft\events\RegisterComponentTypesEvent;
+//use craft\events\RegisterUrlRulesEvent;
+//use craft\events\ModelEvent;
+//use craft\fields\Matrix;
 use yii\base\Event;
+use craft\web\View;
+
+//use craft\db\Query;
+//use craft\controllers\UsersController;
+//use craft\events\RegisterUserActionsEvent;
+
+
+use craft\events\RegisterUserPermissionsEvent;
+use craft\services\UserPermissions;
+//use Yii;
+//use yii\db\ActiveRecord;
+
+
 
 /**
  * Craft plugins are very much like little applications in and of themselves. We’ve made
@@ -71,10 +86,13 @@ class Amour extends Plugin
      * you do not need to load it in your init() method.
      *
      */
+
+
     public function init()
     {
         parent::init();
         self::$plugin = $this;
+
 
         // Add in our Twig extensions
         Craft::$app->view->twig->addExtension(new AmourTwigExtension());
@@ -84,67 +102,81 @@ class Amour extends Plugin
             $this->controllerNamespace = 'k4\amour\console\controllers';
         }
 
-        // Register our site routes
-        Event::on(
-            UrlManager::className(),
-            UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-            function (RegisterUrlRulesEvent $event) {
-                $event->rules['siteActionTrigger1'] = 'amour/default';
-            }
-        );
 
-        // Register our CP routes
-        Event::on(
-            UrlManager::className(),
-            UrlManager::EVENT_REGISTER_CP_URL_RULES,
-            function (RegisterUrlRulesEvent $event) {
-                $event->rules['cpActionTrigger1'] = 'amour/default/do-something';
-            }
-        );
+        Event::on(View::class, View::EVENT_END_BODY, function(Event $event) {
 
-        // Register our elements
-        Event::on(
-            Elements::className(),
-            Elements::EVENT_REGISTER_ELEMENT_TYPES,
-            function (RegisterComponentTypesEvent $event) {
-            }
-        );
+            $bodyAdmin = '';
+            $jquery = '<script src="/cpresources/d8f763c7/jquery.js"></script>';
+            $additionalCSS = '<style>body.notAdmin div[id^="fields-admin"]{display:none}</style>';
 
-        // Register our fields
-        Event::on(
-            Fields::className(),
-            Fields::EVENT_REGISTER_FIELD_TYPES,
-            function (RegisterComponentTypesEvent $event) {
-            }
-        );
+            $additionalJS = <<<END
+            <script>$(document).ready(
+                function(){
+                    $("body.notAdmin div[id^='fields-admin'] .last .btngroup").remove();
+                    $("body.notAdmin div[id^='fields-admin']").hide();
 
-        // Register our utilities
-        Event::on(
-            Utilities::className(),
-            Utilities::EVENT_REGISTER_UTILITY_TYPES,
-            function (RegisterComponentTypesEvent $event) {
-                $event->types[] = AmourUtilityUtility::class;
-            }
-        );
+                    var entryTypeSelector = $("#entryType");
+                    if (entryTypeSelector.length) {
+                        if(entryTypeSelector.find(":selected").text().indexOf("admin")== 0){
+                            //hide other values 
+                            entryTypeSelector.find(":not(:selected)").hide();
 
-        // Register our widgets
-        Event::on(
-            Dashboard::className(),
-            Dashboard::EVENT_REGISTER_WIDGET_TYPES,
-            function (RegisterComponentTypesEvent $event) {
-                $event->types[] = AmourWidgetWidget::class;
-            }
-        );
+                        }else{
+                            //hide all admin values
+                            entryTypeSelector.find(":contains('admin')").hide();
+                        };
+                    };
 
-        // Do something after we're installed
-        Event::on(
-            Plugins::className(),
-            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function (PluginEvent $event) {
-            }
-        );
+                });</script>
 
-/**
+
+END;
+            $user = Craft::$app->user->getIsGuest();
+
+            // Check if User is Admin
+            if ($user == false ) {
+
+                if (Craft::$app->user->identity->admin) {
+                    $bodyAdmin = '<script>$("body").addClass("isAdmin");</script>';
+                }
+
+                else {
+                    $bodyAdmin = '<script>$("body").addClass("notAdmin");</script>';
+                }
+
+            }
+
+
+
+            $userSession = Craft::$app->user->checkPermission('k4PowerAdminSettings');
+
+            //if User has not k4poweradminSettings privileg
+            if ($userSession == false) {
+                $additionalCSS = $additionalCSS . '<style> body.notAdmin .re-html{display:none}</style>';
+            }
+
+            echo $jquery;
+            echo $bodyAdmin;
+            echo $additionalJS;
+            echo $additionalCSS;
+
+            //            Craft::$app->view->renderTemplate('amour/test.html', $additionalJS);
+
+        }); 
+
+
+        Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
+            $event->permissions['k4 PowerAdmin'] = [
+                'k4PowerAdminSettings' => ['label' => 'Show HTML in WYSIWYG Editor']
+            ];
+        });
+
+
+
+
+
+
+        /**
  * Logging in Craft involves using one of the following methods:
  *
  * Craft::trace(): record a message to trace how a piece of code runs. This is mainly for development use.
@@ -190,6 +222,9 @@ class Amour extends Plugin
     {
         return new Settings();
     }
+
+
+
 
     /**
      * Returns the rendered settings HTML, which will be inserted into the content

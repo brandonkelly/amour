@@ -95,7 +95,7 @@ class Amour extends Plugin
 
 
         // Add in our Twig extensions
-        Craft::$app->view->twig->addExtension(new AmourTwigExtension());
+        Craft::$app->view->registerTwigExtension(new AmourTwigExtension());
 
         // Add in our console commands
         if (Craft::$app instanceof ConsoleApplication) {
